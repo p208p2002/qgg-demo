@@ -11,11 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 # server setting
 app = FastAPI()
 
-origins = [
-    "http://127.0.0.1",
-    "http://127.0.0.1:8000",
+origins = [    
     "http://localhost",
-    "http://localhost:8000",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -85,7 +83,7 @@ MAX_LENGTH=512
 def read_root():
     return {"Hello": "World"}
 
-@app.post("/generate/")
+@app.post("/generate")
 async def generate(order:GenerationOrder):
     context = order.context
     question_group_size = order.question_group_size
