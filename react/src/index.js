@@ -7,6 +7,11 @@ import reportWebVitals from './reportWebVitals';
 ReactDOM.render(
   <React.StrictMode>
     <App />
+    <footer className="footer">
+      <hr />
+      Philip Huang
+      <br/>
+    </footer>
   </React.StrictMode>,
   document.getElementById('root')
 );

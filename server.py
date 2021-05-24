@@ -7,15 +7,16 @@ import torch
 import re
 from qgg_utils.optim import GAOptimizer
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
 # server setting
-app = FastAPI()
-
 origins = [    
     "http://localhost",
     "http://localhost:3000",
 ]
-
+app = FastAPI()
+app.mount("/react", StaticFiles(directory="react/build"), name="react")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -79,9 +80,11 @@ qgg=QuestionGroupGenerator(
 MAX_LENGTH=512
 
 # router
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    with open("react/build/index.html","r",encoding="utf-8") as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content, status_code=200)
 
 @app.post("/generate")
 async def generate(order:GenerationOrder):

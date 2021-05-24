@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+    qgg_generator:
+        build: "."
+        container_name: "qgg"
+        restart: always
+        ports:
+        - "22501:8000"

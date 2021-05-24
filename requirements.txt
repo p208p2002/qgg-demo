@@ -1,5 +1,11 @@
-fastapi
+uvicorn
+fastapi[all]
 pydantic
 torch
 transformers
-git+https://github.com/p208p2002/qgg-utils.git
+stanza
+geneticalgorithm
+loguru
+matplotlib
+git+https://github.com/voidful/nlg-eval.git@master
+# git+https://github.com/p208p2002/qgg-utils.git
