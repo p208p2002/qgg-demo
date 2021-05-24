@@ -1,0 +1,5 @@
+fastapi
+pydantic
+torch
+transformers
+git+https://github.com/p208p2002/qgg-utils.git
