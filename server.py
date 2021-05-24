@@ -8,8 +8,8 @@ import re
 from qgg_utils.optim import GAOptimizer
 from fastapi.middleware.cors import CORSMiddleware
 
+# server setting
 app = FastAPI()
-MAX_LENGTH=512
 
 origins = [
     "http://127.0.0.1",
@@ -17,6 +17,7 @@ origins = [
     "http://localhost",
     "http://localhost:8000",
 ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -25,21 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class GenerationOrder(BaseModel):
-    context: str
-    question_group_size: Optional[int] = 5
-    candidate_pool_size: Optional[int] = 10
-
-class QuestionGroupGenerator(BaseModel):
-    model: Any
-    tokenizer: Any
-    optim: Any
-
-qgg=QuestionGroupGenerator(
-        model=BartForConditionalGeneration.from_pretrained("p208p2002/focus_rqg"),
-        tokenizer=BartTokenizerFast.from_pretrained("p208p2002/focus_rqg")
-    )
-
+# utils
 def feedback_generation(qgg, input_ids, feedback_times = 3):
         outputs = []
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')        
@@ -71,11 +58,29 @@ def feedback_generation(qgg, input_ids, feedback_times = 3):
             if qgg.tokenizer.bos_token is not None:
                 decode_question = re.sub(re.escape(qgg.tokenizer.bos_token),'',decode_question)
             decode_question = decode_question.strip()
-            decode_question = decode_question.replace("[Q:]","")
-            # if args.dev: print(decode_question)
+            decode_question = decode_question.replace("[Q:]","")            
             outputs.append(decode_question)
         return outputs
 
+# data model
+class GenerationOrder(BaseModel):
+    context: str
+    question_group_size: Optional[int] = 5
+    candidate_pool_size: Optional[int] = 10
+
+class QuestionGroupGenerator(BaseModel):
+    model: Any
+    tokenizer: Any
+    optim: Any
+
+# nn model setting
+qgg=QuestionGroupGenerator(
+        model=BartForConditionalGeneration.from_pretrained("p208p2002/focus_rqg"),
+        tokenizer=BartTokenizerFast.from_pretrained("p208p2002/focus_rqg")
+    )
+MAX_LENGTH=512
+
+# router
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -86,8 +91,15 @@ async def generate(order:GenerationOrder):
     question_group_size = order.question_group_size
     candidate_pool_size = order.candidate_pool_size
     qgg_optim = GAOptimizer(candidate_pool_size,question_group_size)
+    
+    # 
     if candidate_pool_size < question_group_size:
-        return {'message':'`candidate_pool_size` must bigger than `question_group_size`'},500
+        return {'message':'`candidate_pool_size` must bigger than `question_group_size`'},400    
+    if candidate_pool_size > 20:
+        return {'message':'`candidate_pool_size` must smaller than 20'},400
+    if question_group_size > 10:
+        return {'message':'`question_group_size` must smaller than 10'},400
+    
     input_ids = qgg.tokenizer(
                     context,
                     max_length=MAX_LENGTH,
@@ -98,3 +110,5 @@ async def generate(order:GenerationOrder):
     candidate_questions = feedback_generation(qgg=qgg,input_ids=input_ids,feedback_times=order.candidate_pool_size)
     question_group = qgg_optim.optimize(candidate_questions,context)
     return {'question_group':question_group}
+
+
