@@ -74,8 +74,8 @@ class QuestionGroupGenerator(BaseModel):
 
 # nn model setting
 qgg=QuestionGroupGenerator(
-        model=BartForConditionalGeneration.from_pretrained("p208p2002/focus_rqg"),
-        tokenizer=BartTokenizerFast.from_pretrained("p208p2002/focus_rqg")
+        model=BartForConditionalGeneration.from_pretrained("p208p2002/qmst-qgg"),
+        tokenizer=BartTokenizerFast.from_pretrained("p208p2002/qmst-qgg")
     )
 MAX_LENGTH=512
 
