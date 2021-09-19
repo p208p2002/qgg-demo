@@ -74,10 +74,13 @@ class QuestionGroupGenerator(BaseModel):
     optim: Any
 
 # nn model setting
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')        
 qgg=QuestionGroupGenerator(
         model=BartForConditionalGeneration.from_pretrained("p208p2002/qmst-qgg"),
         tokenizer=BartTokenizerFast.from_pretrained("p208p2002/qmst-qgg")
     )
+qgg.model.to(device)
+
 MAX_LENGTH=512
 
 # router
