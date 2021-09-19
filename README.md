@@ -3,7 +3,7 @@
 ### 前端
 ```sh
 # npm install
-export REACT_APP_DEV_API_URI=http://140.120.13.253:16004/generate
+export REACT_APP_DEV_API_URI=http://140.120.13.253:16004
 PORT=16005 npm start
 ```
 ### 後端
