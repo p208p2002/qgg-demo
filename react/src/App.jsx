@@ -5,10 +5,10 @@ const axios = require('axios');
 let API_URI = ''
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
   // dev code
-  API_URI = process.env.REACT_APP_DEV_API_URI || 'http://localhost:8000/generate'
+  API_URI = process.env.REACT_APP_DEV_API_URI || 'http://localhost:8000'
 } else {
   // production code
-  API_URI = '/generate'
+  API_URI = ''
 }
 
 console.log(API_URI)
@@ -29,16 +29,29 @@ function App() {
   let [questionGroup, setQuestionGroup] = useState([])
   let [disableGenBtn, setDisableGenBtn] = useState(false)
   let [genBtnTitle, setGenBtnTitle] = useState('Generate')
+  let [answerValue, setAnswerValue] = useState({})
+
+  //answerInputOnChange
+  let answerInputOnChange = (e) => {
+    // console.log(e, e.target.id)
+    answerValue[e.target.id] = e.target.value
+    answerValue = Object.assign(answerValue, {
+      [e.target.id]: e.target.value
+    })
+    // console.log(answerValue)
+    setAnswerValue(answerValue)
+  }
 
   let genQuestionGroup = (context, question_group_size, candidate_pool_size) => {
     if (context === '') {
       context = exampleInputText
     }
     console.log(context, question_group_size, candidate_pool_size)
+    setAnswerValue({}) // reset
     setQuestionGroup([])
     setDisableGenBtn(true)
     setGenBtnTitle('Generating...')
-    axios.post(API_URI, {
+    axios.post(API_URI+'/generate-question-group', {
       context,
       question_group_size,
       candidate_pool_size
@@ -54,6 +67,26 @@ function App() {
         setDisableGenBtn(false)
         setGenBtnTitle('Generate')
       })
+  }
+
+  let genOptions = () => {
+    if (context === '') {
+      context = exampleInputText
+    }
+    setAnswerValue({}) // reset
+    console.log(questionGroup)
+    console.log(answerValue)
+    // combine question and answer
+    let question_and_answers = questionGroup.map((question,i)=>{
+      let answer = answerValue[`A${i+1}.`] || ''
+      return {question,answer}
+    })
+    console.log(context)
+    console.log(question_and_answers)
+    axios.post(API_URI+'/generate-distractor', {
+      context,
+      question_and_answers
+    }) 
   }
 
   return (
@@ -120,18 +153,38 @@ function App() {
 
       <hr />
 
-      <div className="displayQuesitonGroup" style={{minHeight:80}}>
+      <div className="displayQuesitonGroup" style={{ minHeight: 80, width: '100%' }}>
         {questionGroup.map((question, i) => {
           return (
-            <div className="mb-1 row">
-              <label htmlFor={`Q${i + 1}.`} className="col-2 col-md-1 col-form-label">Q{i + 1}.</label>
-              <div className="col-10">
-                <input type="text" readOnly className="form-control-plaintext" id={`Q${i + 1}.`} value={question} />
+            <div className="mb-1 row question-block card" key={i}>
+              {/*  */}
+              <div className="col-12">
+                <label htmlFor={`Q${i + 1}.`} className="col-2 col-md-1 col-form-label">Q{i + 1}.</label>
+                <span className="col-10">
+                  <input type="text" readOnly className="form-control-plaintext" id={`Q${i + 1}.`} value={question} />
+                </span>
+              </div>
+
+              {/*  */}
+              <div className="col-12">
+                <label htmlFor={`A${i + 1}.`} className="col-2 col-md-1 col-form-label">A{i + 1}.</label>
+                <span className="col-8">
+                  <input type="text" id={`A${i + 1}.`} onChange={answerInputOnChange} value={answerValue[`A${i + 1}.`]} />
+                </span>
               </div>
             </div>
           )
         })}
       </div>
+      {questionGroup.length > 0 ?
+        <button
+          type="button"
+          className="mt-2 btn btn-success w-100"
+          onClick={genOptions}
+        >
+          Generate Options
+      </button>
+        : <></>}
     </div>
   );
 }

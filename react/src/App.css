@@ -1,3 +1,14 @@
 h1{
   font-size: 30px;
 }
+
+.question-block{
+  border: 1px solid black;
+  border-radius: 3px;
+
+}
+
+.row{
+  --bs-gutter-x: 0rem;
+  padding-left: 2%;
+}
