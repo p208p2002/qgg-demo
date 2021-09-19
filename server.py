@@ -1,15 +1,15 @@
-from os import truncate
-from typing import Optional,List,Any
 from fastapi import FastAPI
-from pydantic import BaseModel
-from transformers import BartTokenizerFast, BartForConditionalGeneration
+from transformers import BartTokenizerFast, BartForConditionalGeneration, AutoTokenizer
 import torch
-import re
 from qgg_utils.optim import GAOptimizer
+from qgg_utils.scorer import CoverageScorer
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from loguru import logger
+from utils.data_model import *
+from utils import feedback_generation
+from config import MAX_LENGTH
 
 # server setting
 origins = [    
@@ -27,51 +27,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# utils
-def feedback_generation(qgg, input_ids, feedback_times = 3):
-        outputs = []
-        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        for i in range(feedback_times):
-            gened_text = qgg.tokenizer.bos_token * (len(outputs)+1)
-            gened_ids = qgg.tokenizer(gened_text,add_special_tokens=False)['input_ids']            
-            input_ids = gened_ids + input_ids
-            input_ids = input_ids[:MAX_LENGTH]
-            
-            sample_outputs = qgg.model.generate(
-                input_ids = torch.LongTensor(input_ids).unsqueeze(0).to(device),
-                attention_mask=torch.LongTensor([1]*len(input_ids)).unsqueeze(0).to(device),
-                max_length=50,
-                early_stopping=True,
-                temperature=1.0,
-                do_sample=True,
-                top_p=0.9,
-                top_k=10,
-                num_beams=1,
-                no_repeat_ngram_size=5,
-                num_return_sequences=1,
-            )
-            sample_output = sample_outputs[0]        
-            decode_question = qgg.tokenizer.decode(sample_output, skip_special_tokens=False)
-            decode_question = re.sub(re.escape(qgg.tokenizer.pad_token),'',decode_question)
-            decode_question = re.sub(re.escape(qgg.tokenizer.eos_token),'',decode_question)
-            if qgg.tokenizer.bos_token is not None:
-                decode_question = re.sub(re.escape(qgg.tokenizer.bos_token),'',decode_question)
-            decode_question = decode_question.strip()
-            decode_question = decode_question.replace("[Q:]","")            
-            outputs.append(decode_question)
-        return outputs
-
-# data model
-class GenerationOrder(BaseModel):
-    context: str
-    question_group_size: Optional[int] = 5
-    candidate_pool_size: Optional[int] = 10
-
-class QuestionGroupGenerator(BaseModel):
-    model: Any
-    tokenizer: Any
-    optim: Any
-
 # nn model setting
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')        
 qgg=QuestionGroupGenerator(
@@ -80,8 +35,6 @@ qgg=QuestionGroupGenerator(
     )
 qgg.model.to(device)
 
-MAX_LENGTH=512
-
 # router
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -89,8 +42,14 @@ async def root():
         html_content = f.read()
     return HTMLResponse(content=html_content, status_code=200)
 
-@app.post("/generate")
+@app.post("/generate-question-group")
 async def generate(order:GenerationOrder):
+    # return {'question_group':[
+    #             'Harry Potter is a series of seven fantasy novels written by   _ .',
+    #             'Who is Voldemort?',
+    #             'How does the story begin?'
+    #         ]}
+
     context = order.context
     question_group_size = order.question_group_size
     candidate_pool_size = order.candidate_pool_size
@@ -128,4 +87,43 @@ async def generate(order:GenerationOrder):
         candidate_questions = qgg_optim.optimize(candidate_questions,context)
     return {'question_group':candidate_questions}
 
+@app.post("/generate-distractor")
+async def generate(order:DistractorOrder):
+    tokenizer = AutoTokenizer.from_pretrained("voidful/bart-distractor-generation")
+    tokenize_result = tokenizer.batch_encode_plus(
+        [order.context],
+        stride=MAX_LENGTH - int(MAX_LENGTH*0.7),
+        max_length=MAX_LENGTH,
+        truncation=True,
+        add_special_tokens=False,
+        return_overflowing_tokens=True,
+        return_length=True,
+    )
+    logger.debug(tokenize_result)
+
+    # 由於內文有長度限制；計算問句最匹配的內文段落
+    keyword_coverage_scorer = CoverageScorer()
+    cqas = []
+    for question_and_answer in order.question_and_answers:
+        question = question_and_answer.question
+        answer = question_and_answer.answer
+        score = 0.0
+        paragraph = tokenizer.decode(tokenize_result.input_ids[0])
+        for input_ids in tokenize_result.input_ids:
+            _paragraph = tokenizer.decode(input_ids)
+            _score = keyword_coverage_scorer._compute_coverage_score([question],_paragraph)
+            # logger.debug(f"Q:{question} A:{answer} score:{score}")
+
+            if _score > score:
+                score = _score
+                paragraph = _paragraph
+
+        cqas.append({
+            'context':paragraph,
+            'question':question,
+            'answer':answer
+        })
+
+    logger.debug(cqas)
+    return {}
 
