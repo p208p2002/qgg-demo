@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse
 
 # server setting
 origins = [    
+    "*",
     "http://localhost",
     "http://localhost:3000",
 ]

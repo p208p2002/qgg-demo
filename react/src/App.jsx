@@ -5,11 +5,13 @@ const axios = require('axios');
 let API_URI = ''
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
   // dev code
-  API_URI = 'http://localhost:8000/generate'
+  API_URI = process.env.REACT_APP_DEV_API_URI || 'http://localhost:8000/generate'
 } else {
   // production code
   API_URI = '/generate'
 }
+
+console.log(API_URI)
 
 // example input
 function getRandomInt(max) {
