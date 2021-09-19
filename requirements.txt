@@ -7,5 +7,6 @@ stanza
 geneticalgorithm
 loguru
 matplotlib
+loguru
 git+https://github.com/voidful/nlg-eval.git@master
 # git+https://github.com/p208p2002/qgg-utils.git
