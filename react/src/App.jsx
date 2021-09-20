@@ -34,7 +34,7 @@ function App() {
   let answerInputOnChange = (e) => {
     // console.log(e, e.target.id)
     answerValue[e.target.name] = e.target.value
-    answerValue = Object.assign({},answerValue, {
+    answerValue = Object.assign({}, answerValue, {
       [e.target.name]: e.target.value
     })
     // console.log(answerValue)
@@ -204,11 +204,11 @@ function App() {
               {/*  */}
               <div className="col-12 ps-2">
                 <div className="row">
-                  <label className="col-sm-1 col-form-label">A{i + 1}.</label>
-                  <div className="col-sm-6">
+                  <div className="col-12">
+                    <span className="me-2">A{i + 1}.</span>
                     <input
-                      className="form-control form-control-sm"
-                      type="text" 
+                      // className="form-control form-control-sm"
+                      type="text"
                       name={`A${i + 1}.`}
                       onChange={answerInputOnChange}
                       value={answerValue[`A${i + 1}.`]}
@@ -223,10 +223,7 @@ function App() {
                   <div className="col-12">
                     {optionValue[`O${i + 1}.`] ?
                       optionValue[`O${i + 1}.`].map((option, i) => {
-                        return <div className="mb-1" key={i}>{`O${i + 1}.`}
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        {option}
-                        </div>
+                        return <div className="mb-1" key={i}><span className="me-2">{`O${i + 1}.`}</span>{option}</div>
                       })
                       : ''
                     }
