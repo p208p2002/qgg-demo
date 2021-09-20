@@ -30,7 +30,7 @@ function App() {
   let [disableGenBtn, setDisableGenBtn] = useState(false)
   let [genBtnTitle, setGenBtnTitle] = useState('Generate')
   let [answerValue, setAnswerValue] = useState({})
-
+  let [optionValue, setOptionValue] = useState({})
   //answerInputOnChange
   let answerInputOnChange = (e) => {
     // console.log(e, e.target.id)
@@ -51,7 +51,7 @@ function App() {
     setQuestionGroup([])
     setDisableGenBtn(true)
     setGenBtnTitle('Generating...')
-    axios.post(API_URI+'/generate-question-group', {
+    axios.post(API_URI + '/generate-question-group', {
       context,
       question_group_size,
       candidate_pool_size
@@ -73,20 +73,50 @@ function App() {
     if (context === '') {
       context = exampleInputText
     }
-    setAnswerValue({}) // reset
     console.log(questionGroup)
     console.log(answerValue)
     // combine question and answer
-    let question_and_answers = questionGroup.map((question,i)=>{
-      let answer = answerValue[`A${i+1}.`] || ''
-      return {question,answer}
+    let question_and_answers = questionGroup.map((question, i) => {
+      let answer = answerValue[`A${i + 1}.`] || ''
+      return { question, answer }
     })
     console.log(context)
     console.log(question_and_answers)
-    axios.post(API_URI+'/generate-distractor', {
+    // setAnswerValue({}) // reset
+    axios.post(API_URI + '/generate-distractor', {
       context,
       question_and_answers
-    }) 
+    })
+      .then((res) => {
+        console.log(res.data)
+        let { distractors = [] } = res.data
+        let question_answer_and_options = question_and_answers.map((qa) => {
+          // get distractor
+          let distractor = undefined
+          distractors.forEach((d) => {
+            if (d.question === qa.question) {
+              distractor = d
+            }
+          })
+          // merge with qa
+          qa.options = distractor.options || []
+          return qa
+        })
+        // change state
+        question_answer_and_options.forEach((qac, i) => {
+          let options = qac.options
+          optionValue = Object.assign({}, optionValue, {
+            [`O${i + 1}.`]: options
+          })
+        })
+        setOptionValue(optionValue)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+    // .then(()=>{
+
+    // })
   }
 
   return (
@@ -159,18 +189,33 @@ function App() {
             <div className="mb-1 row question-block card" key={i}>
               {/*  */}
               <div className="col-12">
-                <label htmlFor={`Q${i + 1}.`} className="col-2 col-md-1 col-form-label">Q{i + 1}.</label>
-                <span className="col-10">
-                  <input type="text" readOnly className="form-control-plaintext" id={`Q${i + 1}.`} value={question} />
-                </span>
+                <input type="text" readOnly className="form-control-plaintext" id={`Q${i + 1}.`} value={`Q${i + 1}. ${question}`} />
+              </div>
+
+              <hr/>
+
+              {/*  */}
+              <div className="col-12">
+                <div className="row">
+                  <label htmlFor={`A${i + 1}.`} className="col-2 col-md-1 col-form-label">A{i + 1}.</label>
+                  <span className="col-8">
+                    <input type="text" id={`A${i + 1}.`} onChange={answerInputOnChange} value={answerValue[`A${i + 1}.`]} />
+                  </span>
+                </div>
               </div>
 
               {/*  */}
               <div className="col-12">
-                <label htmlFor={`A${i + 1}.`} className="col-2 col-md-1 col-form-label">A{i + 1}.</label>
-                <span className="col-8">
-                  <input type="text" id={`A${i + 1}.`} onChange={answerInputOnChange} value={answerValue[`A${i + 1}.`]} />
-                </span>
+                <div className="row">
+                  <div className="col-12">                    
+                    {optionValue[`O${i + 1}.`] ?
+                      optionValue[`O${i + 1}.`].map((option, i) => {
+                        return <div className="mb-1" key={i}>{`O${i + 1}. ${option}`}</div>
+                      })
+                      : ''
+                    }
+                  </div>
+                </div>
               </div>
             </div>
           )

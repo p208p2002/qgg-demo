@@ -9,7 +9,8 @@ from fastapi.responses import HTMLResponse
 from loguru import logger
 from utils.data_model import *
 from utils import feedback_generation
-from config import MAX_LENGTH
+from utils.distractor import BartDistractorGeneration
+from config import MAX_LENGTH,MAX_CONTEXT_LENGTH
 
 # server setting
 origins = [    
@@ -34,6 +35,9 @@ qgg=QuestionGroupGenerator(
         tokenizer=BartTokenizerFast.from_pretrained("p208p2002/qmst-qgg")
     )
 qgg.model.to(device)
+
+#
+bdg = BartDistractorGeneration()
 
 # router
 @app.get("/", response_class=HTMLResponse)
@@ -92,14 +96,14 @@ async def generate(order:DistractorOrder):
     tokenizer = AutoTokenizer.from_pretrained("voidful/bart-distractor-generation")
     tokenize_result = tokenizer.batch_encode_plus(
         [order.context],
-        stride=MAX_LENGTH - int(MAX_LENGTH*0.7),
-        max_length=MAX_LENGTH,
+        stride=MAX_CONTEXT_LENGTH - int(MAX_CONTEXT_LENGTH*0.7),
+        max_length=MAX_CONTEXT_LENGTH,
         truncation=True,
         add_special_tokens=False,
         return_overflowing_tokens=True,
         return_length=True,
     )
-    logger.debug(tokenize_result)
+    # logger.debug(tokenize_result)
 
     # 由於內文有長度限制；計算問句最匹配的內文段落
     keyword_coverage_scorer = CoverageScorer()
@@ -123,7 +127,23 @@ async def generate(order:DistractorOrder):
             'question':question,
             'answer':answer
         })
-
-    logger.debug(cqas)
-    return {}
+    
+    outs = []
+    for cqa in cqas:
+        options = bdg.generate_distractor(
+            context=cqa['context'],
+            question=cqa['question'],
+            answer=cqa['answer'],
+            gen_quantity=3
+        )
+        logger.info(f"Q:{cqa['question']} A:{cqa['answer']} O:{options}")
+        outs.append({
+            "_context":cqa['context'],
+            "options":options,
+            "question":cqa['question'],
+            "answer":cqa['answer']
+        })
+    return {
+        "distractors":outs
+    }
 
