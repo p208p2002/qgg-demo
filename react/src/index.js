@@ -13,7 +13,7 @@ ReactDOM.render(
       <small><b>Question Group Generator</b> by Philip Huang</small>
       <hr />
       <small>
-      <IoIosPin/> 中興大學，理學大樓722室 NLP LAB<br />
+      <IoIosPin/> 中興大學，理學大樓721室 NLP LAB<br />
       <MdCall/> 04-22840497轉721
       </small>
       <br />
