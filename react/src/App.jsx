@@ -76,20 +76,19 @@ function App() {
     let allAnsIsNull = true
     let question_and_answers = questionGroup.map((question, i) => {
       let answer = answerValue[`A${i + 1}.`] || ''
-      if(answer !== ''){
+      if (answer !== '') {
         allAnsIsNull = false
       }
       return { question, answer }
     })
 
-    if(allAnsIsNull){
+    if (allAnsIsNull) {
       alert('Please provide answers for distractor generation.')
       return
     }
 
     console.log(context)
     console.log(question_and_answers)
-    // setAnswerValue({}) // reset
     setDisableGenBtn(true)
     axios.post(API_URI + '/generate-distractor', {
       context,
@@ -122,9 +121,10 @@ function App() {
       .catch((err) => {
         console.log(err)
       })
-    .then(()=>{
-      setDisableGenBtn(false)
-    })
+      .then(() => {
+        setDisableGenBtn(false)
+        setAnswerValue({}) // reset
+      })
   }
 
   return (
@@ -186,7 +186,7 @@ function App() {
         className="mt-2 btn btn-success w-100"
         onClick={() => genQuestionGroup(context, questionGroupSize, questionGroupSize * 2)}
       >
-          {disableGenBtn?'Generating...':'Generate Question Group'}
+        {disableGenBtn ? 'Generating...' : 'Generate Question Group'}
       </button>
 
       <hr />
@@ -194,31 +194,38 @@ function App() {
       <div className="displayQuesitonGroup" style={{ minHeight: 80, width: '100%' }}>
         {questionGroup.map((question, i) => {
           return (
-            <div className="mb-1 row question-block card" key={i}>
+            <div className="mb-1 row question-block pb-1" key={i}>
               {/*  */}
-              <div className="col-12">
-                <input type="text" readOnly className="form-control-plaintext" id={`Q${i + 1}.`} value={`Q${i + 1}. ${question}`} />
-              </div>
+              <input type="text" readOnly className="form-control" id={`Q${i + 1}.`} value={`Q${i + 1}. ${question}`} />
+              {/* </div> */}
 
-              <hr/>
+              <hr />
 
               {/*  */}
-              <div className="col-12">
+              <div className="col-12 ps-2">
                 <div className="row">
-                  <label htmlFor={`A${i + 1}.`} className="col-2 col-md-1 col-form-label">A{i + 1}.</label>
-                  <span className="col-8">
-                    <input type="text" id={`A${i + 1}.`} onChange={answerInputOnChange} value={answerValue[`A${i + 1}.`]} />
-                  </span>
+                  <label className="col-sm-1 col-form-label">A{i + 1}.</label>
+                  <div className="col-sm-6">
+                    <input
+                      className="form-control form-control-sm"
+                      type="text" id={`A${i + 1}.`}
+                      onChange={answerInputOnChange}
+                      value={answerValue[`A${i + 1}.`]}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/*  */}
-              <div className="col-12">
+              <div className="col-12 ps-2">
                 <div className="row">
-                  <div className="col-12">                    
+                  <div className="col-12">
                     {optionValue[`O${i + 1}.`] ?
                       optionValue[`O${i + 1}.`].map((option, i) => {
-                        return <div className="mb-1" key={i}>{`O${i + 1}. ${option}`}</div>
+                        return <div className="mb-1" key={i}>{`O${i + 1}.`}
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        {option}
+                        </div>
                       })
                       : ''
                     }
@@ -229,17 +236,19 @@ function App() {
           )
         })}
       </div>
-      {questionGroup.length > 0 ?
-        <button
-          disabled={disableGenBtn}
-          type="button"
-          className="mt-2 btn btn-success w-100"
-          onClick={genOptions}
-        >
-          {disableGenBtn?'Generating...':'Generate Distractor'}
-          
-      </button>
-        : <></>}
+      {
+        questionGroup.length > 0 ?
+          <button
+            disabled={disableGenBtn}
+            type="button"
+            className="mt-2 btn btn-success w-100"
+            onClick={genOptions}
+          >
+            {disableGenBtn ? 'Generating...' : 'Generate Distractor'}
+
+          </button>
+          : <></>
+      }
     </div>
   );
 }
