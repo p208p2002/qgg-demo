@@ -7,7 +7,6 @@ from transformers import RobertaTokenizer, AutoTokenizer
 from transformers import RobertaForMultipleChoice,AutoModelForSeq2SeqLM
 from torch.distributions import Categorical
 import itertools as it
-import nlp2go
 from functools import lru_cache
 import json
 from qgg_utils.optim import GAOptimizer
