@@ -28,7 +28,6 @@ function App() {
   let [questionGroupSize, setQuestionGroupSize] = useState(5)
   let [questionGroup, setQuestionGroup] = useState([])
   let [disableGenBtn, setDisableGenBtn] = useState(false)
-  let [genBtnTitle, setGenBtnTitle] = useState('Generate')
   let [answerValue, setAnswerValue] = useState({})
   let [optionValue, setOptionValue] = useState({})
   //answerInputOnChange
@@ -50,7 +49,6 @@ function App() {
     setAnswerValue({}) // reset
     setQuestionGroup([])
     setDisableGenBtn(true)
-    setGenBtnTitle('Generating...')
     axios.post(API_URI + '/generate-question-group', {
       context,
       question_group_size,
@@ -65,7 +63,6 @@ function App() {
       })
       .then(() => {
         setDisableGenBtn(false)
-        setGenBtnTitle('Generate')
       })
   }
 
@@ -76,13 +73,24 @@ function App() {
     console.log(questionGroup)
     console.log(answerValue)
     // combine question and answer
+    let allAnsIsNull = true
     let question_and_answers = questionGroup.map((question, i) => {
       let answer = answerValue[`A${i + 1}.`] || ''
+      if(answer !== ''){
+        allAnsIsNull = false
+      }
       return { question, answer }
     })
+
+    if(allAnsIsNull){
+      alert('Please provide answers for distractor generation.')
+      return
+    }
+
     console.log(context)
     console.log(question_and_answers)
     // setAnswerValue({}) // reset
+    setDisableGenBtn(true)
     axios.post(API_URI + '/generate-distractor', {
       context,
       question_and_answers
@@ -114,9 +122,9 @@ function App() {
       .catch((err) => {
         console.log(err)
       })
-    // .then(()=>{
-
-    // })
+    .then(()=>{
+      setDisableGenBtn(false)
+    })
   }
 
   return (
@@ -178,7 +186,7 @@ function App() {
         className="mt-2 btn btn-success w-100"
         onClick={() => genQuestionGroup(context, questionGroupSize, questionGroupSize * 2)}
       >
-        {genBtnTitle}
+          {disableGenBtn?'Generating...':'Generate Question Group'}
       </button>
 
       <hr />
@@ -223,11 +231,13 @@ function App() {
       </div>
       {questionGroup.length > 0 ?
         <button
+          disabled={disableGenBtn}
           type="button"
           className="mt-2 btn btn-success w-100"
           onClick={genOptions}
         >
-          Generate Options
+          {disableGenBtn?'Generating...':'Generate Distractor'}
+          
       </button>
         : <></>}
     </div>
