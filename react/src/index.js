@@ -3,14 +3,20 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { IoIosPin } from "react-icons/io";
+import { MdCall } from "react-icons/md";
 
 ReactDOM.render(
   <React.StrictMode>
     <App />
     <footer className="footer">
+      <small><b>Question Group Generator</b> by Philip Huang</small>
       <hr />
-      Philip Huang
-      <br/>
+      <small>
+      <IoIosPin/> 中興大學，理學大樓722室 NLP LAB<br />
+      <MdCall/> 04-22840497轉721
+      </small>
+      <br />
     </footer>
   </React.StrictMode>,
   document.getElementById('root')
