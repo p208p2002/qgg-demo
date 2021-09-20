@@ -33,9 +33,9 @@ function App() {
   //answerInputOnChange
   let answerInputOnChange = (e) => {
     // console.log(e, e.target.id)
-    answerValue[e.target.id] = e.target.value
-    answerValue = Object.assign(answerValue, {
-      [e.target.id]: e.target.value
+    answerValue[e.target.name] = e.target.value
+    answerValue = Object.assign({},answerValue, {
+      [e.target.name]: e.target.value
     })
     // console.log(answerValue)
     setAnswerValue(answerValue)
@@ -123,7 +123,7 @@ function App() {
       })
       .then(() => {
         setDisableGenBtn(false)
-        setAnswerValue({}) // reset
+        // setAnswerValue({}) // reset
       })
   }
 
@@ -207,8 +207,10 @@ function App() {
                   <label className="col-sm-1 col-form-label">A{i + 1}.</label>
                   <div className="col-sm-6">
                     <input
+                      key={answerValue[`A${i + 1}.`]===undefined?'1':'0'}
                       className="form-control form-control-sm"
-                      type="text" id={`A${i + 1}.`}
+                      type="text" 
+                      name={`A${i + 1}.`}
                       onChange={answerInputOnChange}
                       value={answerValue[`A${i + 1}.`]}
                     />
