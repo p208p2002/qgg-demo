@@ -207,7 +207,6 @@ function App() {
                   <label className="col-sm-1 col-form-label">A{i + 1}.</label>
                   <div className="col-sm-6">
                     <input
-                      key={answerValue[`A${i + 1}.`]===undefined?'1':'0'}
                       className="form-control form-control-sm"
                       type="text" 
                       name={`A${i + 1}.`}
