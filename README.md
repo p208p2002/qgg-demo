@@ -16,5 +16,5 @@ uvicorn server:app --reload --host=0.0.0.0 --port=16004
 ```
 ## Deploy
 ```
-docker-compose up -d --build
+docker-compose up --build
 ```
