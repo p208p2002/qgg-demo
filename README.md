@@ -1,6 +1,6 @@
 # QGG Demo
 The demo system of [EQGG](https://github.com/p208p2002/Neural-Question-Group-Generation)
-
+[Live Demo](https://qgg-demo.nlpnchu.org)
 ## Develop
 ### Front End
 ```sh
