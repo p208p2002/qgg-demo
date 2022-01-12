@@ -1,14 +1,11 @@
 from loguru import logger
 import torch
 from config import MAX_CONTEXT_LENGTH,MAX_LENGTH,MAX_ANSWER_LENGTH,MAX_QUESTION_LENGTH
-import wget
 from nlgeval import NLGEval
 from transformers import RobertaTokenizer, AutoTokenizer
 from transformers import RobertaForMultipleChoice,AutoModelForSeq2SeqLM
 from torch.distributions import Categorical
-import itertools as it
 from functools import lru_cache
-import json
 from qgg_utils.optim import GAOptimizer
 
 def prepare_dis_model_input_ids(article,question,answer,tokenizer):

@@ -1,18 +1,20 @@
 # QGG Demo
-## 開發
-### 前端
+The demo system of [EQGG](https://github.com/p208p2002/Neural-Question-Group-Generation)
+
+## Develop
+### Front End
 ```sh
 # npm install
-export REACT_APP_DEV_API_URI=http://140.120.13.253:16004
+export REACT_APP_DEV_API_URI=http://127.0.0.1:16004
 PORT=16005 npm start
 ```
-### 後端
+### Back End
 ```sh
 # pip install -r  requirements.txt
 # python -c"import stanza;stanza.download('en')"
 uvicorn server:app --reload --host=0.0.0.0 --port=16004
 ```
-## 部署
+## Deploy
 ```
 docker-compose up -d --build
 ```
